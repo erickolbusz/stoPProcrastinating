@@ -7,8 +7,22 @@
 
 static time_t start = 0;
 
-void write_time(int signal)
-{
+void timeToStr(char * buf, time_t seconds) {
+    //1 day is the largest unit of time
+    int days = seconds/86400;
+    seconds -= days*8400;
+    int hours = seconds/3600;
+    seconds -= hours*3600;
+    int minutes = seconds/60;
+    seconds -= minutes*60;
+    sprintf(buf, "%dd %dh %dm %ds\0", days, hours, minutes, seconds);
+}
+
+time_t strToTime(char * buf) {
+    return (time_t) 0;
+}
+
+void write_time(int signal) {
     time_t end = time(0);
     time_t diff = end - start;
 
@@ -19,7 +33,7 @@ void write_time(int signal)
     time_t new_time = old_time + diff;
 
     char out_buf[100];
-    sprintf(out_buf, "%d\0", new_time);
+    timeToStr(out_buf, new_time);
 
     int write_len = 0;
     while (out_buf[write_len]) {write_len++;}
@@ -30,8 +44,10 @@ void write_time(int signal)
     exit(0);
 }
 
+
 int main(void) {
     start = time(0);
     signal(SIGINT, write_time);
     while(1){}
+    return 0;
 }
