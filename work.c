@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <signal.h>
+#include <string.h>
 #include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -15,11 +16,23 @@ void timeToStr(char * buf, time_t seconds) {
     seconds -= hours*3600;
     int minutes = seconds/60;
     seconds -= minutes*60;
-    sprintf(buf, "%dd %dh %dm %ds\0", days, hours, minutes, seconds);
+    sprintf(buf, "TOTAL TIME: %dd %dh %dm %ds\0", days, hours, minutes, seconds);
+
 }
 
 time_t strToTime(char * buf) {
-    return (time_t) 0;
+    char * str_p = strtok(buf, " dhms");
+    int i = 0;
+    int ret = 0;
+    int mult[4] = {86400, 3600, 60, 1};
+    while (str_p) {
+        if (i++>1) {
+            ret += mult[i-3]*atoi(str_p);
+        }
+        str_p = strtok(NULL, " dhms");
+    }
+    printf("%d\n", ret);
+    return (time_t) ret;
 }
 
 void write_time(int signal) {
@@ -29,23 +42,26 @@ void write_time(int signal) {
     char in_buf[100];
     int f = open("time.txt", O_RDWR | O_CREAT, S_IRWXU | S_IRWXG);
     read(f, in_buf, 100);
-    time_t old_time = atoi(in_buf);
+    //time_t old_time = atoi(in_buf);
+    time_t old_time = strToTime(in_buf);
     time_t new_time = old_time + diff;
 
-    char out_buf[100];
+    char out_buf[107];
     timeToStr(out_buf, new_time);
 
-    int write_len = 0;
-    while (out_buf[write_len]) {write_len++;}
+    int pad = 0;
+    while (out_buf[pad]) {pad++;}
+    while (pad < 100) {out_buf[pad++] = ' ';}
+    while (pad < sizeof(out_buf)) {out_buf[pad++] = '-';}
+    out_buf[100] = '\r';
+    out_buf[101] = '\n';
 
     lseek(f,0,SEEK_SET);
-    write(f, out_buf, write_len);
     close(f);
     exit(0);
 }
 
-
-int main(void) {
+int main() {
     start = time(0);
     signal(SIGINT, write_time);
     while(1){}
