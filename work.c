@@ -11,13 +11,12 @@ static time_t start = 0;
 void timeToStr(char * buf, time_t seconds) {
     //1 day is the largest unit of time
     int days = seconds/86400;
-    seconds -= days*8400;
+    seconds -= (days*86400);
     int hours = seconds/3600;
-    seconds -= hours*3600;
+    seconds -= (hours*3600);
     int minutes = seconds/60;
-    seconds -= minutes*60;
+    seconds -= (minutes*60);
     sprintf(buf, "TOTAL TIME: %dd %dh %dm %ds\0", days, hours, minutes, seconds);
-
 }
 
 time_t strToTime(char * buf) {
@@ -31,7 +30,6 @@ time_t strToTime(char * buf) {
         }
         str_p = strtok(NULL, " dhms");
     }
-    printf("%d\n", ret);
     return (time_t) ret;
 }
 
@@ -42,7 +40,7 @@ void write_time(int signal) {
     char in_buf[100];
     int f = open("time.txt", O_RDWR | O_CREAT, S_IRWXU | S_IRWXG);
     read(f, in_buf, 100);
-    //time_t old_time = atoi(in_buf);
+
     time_t old_time = strToTime(in_buf);
     time_t new_time = old_time + diff;
 
@@ -57,6 +55,7 @@ void write_time(int signal) {
     out_buf[101] = '\n';
 
     lseek(f,0,SEEK_SET);
+    write(f, out_buf, sizeof(out_buf));
     close(f);
     exit(0);
 }
