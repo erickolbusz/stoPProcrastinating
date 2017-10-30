@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <windows.h>
 #include <process.h>
 #include <Tlhelp32.h>
@@ -24,6 +25,9 @@ void killProcess(const char *filename) {
 }
 
 int main() {
-    killProcess("csgo.exe");
+    while(1) {
+        killProcess("notepad.exe");
+        sleep(3); //experimental
+    }
     return 0;
 }

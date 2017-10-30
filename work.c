@@ -80,6 +80,7 @@ void write_time(int signal) {
 int main() {
     start = time(0);
     signal(SIGINT, write_time);
-    while(1){}
+    signal(SIGHUP, write_time);
+    pause();
     return 0;
 }
