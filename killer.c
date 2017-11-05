@@ -1,9 +1,15 @@
 #include <unistd.h>
+//#include <stdlib.h>
+//#include <stdio.h>
 #include <windows.h>
-#include <process.h>
+//#include <process.h>
 #include <Tlhelp32.h>
-#include <winbase.h>
-#include <string.h>
+//#include <winbase.h>
+#include <signal.h>
+//#include <string.h>
+
+static const char * PROGRAMS[2] = {"notepad.exe","mspaint.exe"};
+static const int NUM_PROGRAMS = sizeof(PROGRAMS)/sizeof(PROGRAMS[0]);
 
 void killProcess(const char *filename) {
     //https://stackoverflow.com/questions/7956519/how-to-kill-processes-by-name-win32-api
@@ -24,10 +30,20 @@ void killProcess(const char *filename) {
     CloseHandle(hSnapShot);
 }
 
+void updateWork() {
+    
+}
+
 int main() {
+    int workDone = 0;
+    signal(SIGUSR1, updateWork);
     while(1) {
-        killProcess("notepad.exe");
-        sleep(3); //experimental
+        if (!workDone) {
+            for (int i=0; i<NUM_PROGRAMS; i++) {
+                killProcess(PROGRAMS[i]);
+            }
+        }
+        sleep(3);
     }
     return 0;
 }

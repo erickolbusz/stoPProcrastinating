@@ -1,10 +1,14 @@
-#include <stdlib.h>
+//#include <stdlib.h>
 #include <stdio.h>
-#include <signal.h>
-#include <string.h>
-#include <time.h>
+//#include <signal.h>
+//#include <string.h>
+//#include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <windows.h>
+//#include <process.h>
+#include <Tlhelp32.h>
+//#include <winbase.h>
 
 static time_t start = 0;
 
@@ -74,6 +78,24 @@ void write_time(int signal) {
     write(f, bufInfo, write_len);
 
     close(f);
+
+    //send SIGUSR1 to killer to possibly stop killing
+    HANDLE hSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPALL, 0);
+    PROCESSENTRY32 pEntry;
+    pEntry.dwSize = sizeof(pEntry);
+    BOOL hRes = Process32First(hSnapShot, &pEntry);
+    while (hRes) {
+        if (!strcmp(pEntry.szExeFile, "killer.exe")) {
+            HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, 0, (DWORD) pEntry.th32ProcessID);
+            if (hProcess) {
+                kill(pEntry.th32ProcessID, SIGUSR1);
+                CloseHandle(hProcess);
+            }
+        }
+        hRes = Process32Next(hSnapShot, &pEntry);
+    }
+    CloseHandle(hSnapShot);
+
     exit(0);
 }
 
