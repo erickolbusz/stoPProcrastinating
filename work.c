@@ -86,11 +86,7 @@ void write_time(int signal) {
     BOOL hRes = Process32First(hSnapShot, &pEntry);
     while (hRes) {
         if (!strcmp(pEntry.szExeFile, "killer.exe")) {
-            HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, 0, (DWORD) pEntry.th32ProcessID);
-            if (hProcess) {
-                kill(pEntry.th32ProcessID, SIGUSR1);
-                CloseHandle(hProcess);
-            }
+            kill(pEntry.th32ProcessID, SIGUSR1);
         }
         hRes = Process32Next(hSnapShot, &pEntry);
     }
