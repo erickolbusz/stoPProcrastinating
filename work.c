@@ -11,6 +11,7 @@
 //#include <winbase.h>
 
 static time_t start = 0;
+static const char * RESET_TIME = "12:00:00"; //24 hour time
 
 void timeToStr(char * buf, time_t seconds) {
     //1 day is the largest unit of time
@@ -37,12 +38,11 @@ time_t strToTime(char * buf) {
     return (time_t) ret;
 }
 
-void write_time(int signal) {
-    time_t end = time(0);
+void write_log(time_t end) {
     time_t diff = end - start;
 
     char bufIn[100];
-    int f = open("time.txt", O_RDWR | O_CREAT, S_IRWXU | S_IRWXG);
+    int f = open("log.txt", O_RDWR | O_CREAT, S_IRWXU | S_IRWXG);
     read(f, bufIn, 100);
 
     time_t old_time = strToTime(bufIn);
@@ -78,6 +78,27 @@ void write_time(int signal) {
     write(f, bufInfo, write_len);
 
     close(f);
+}
+
+void write_data(time_t end) {
+    time_t diff = end - start;
+
+    int f = open("asdf.txt", O_RDWR | O_CREAT, S_IRWXU | S_IRWXG);
+
+    char bufInfo[100];
+    sprintf(bufInfo, "%d:%d|", start, diff);
+    int write_len = 0;
+    while (bufInfo[++write_len]){}
+
+    lseek(f,0,SEEK_END);
+    write(f, bufInfo, write_len);
+    close(f);
+}
+
+void write_time() {
+    time_t end = time(0);
+    write_data(end); //raw data for killer
+    //write_log(end); //human output
 
     //send SIGUSR1 to killer to possibly stop killing
     HANDLE hSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPALL, 0);

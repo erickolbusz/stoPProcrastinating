@@ -10,6 +10,7 @@
 
 static const char * PROGRAMS[2] = {"notepad.exe","mspaint.exe"};
 static const int NUM_PROGRAMS = sizeof(PROGRAMS)/sizeof(PROGRAMS[0]);
+static const char * RESET_TIME = "12:00:00"; //24 hour time
 
 void killProcesses() {
     //https://stackoverflow.com/questions/7956519/how-to-kill-processes-by-name-win32-api
@@ -33,9 +34,7 @@ void killProcesses() {
 }
 
 void updateWork() {
-    sleep(1);
-    exit(0);
-
+    //calculate amount of time worked since RESET_TIME
 }
 
 int main() {
