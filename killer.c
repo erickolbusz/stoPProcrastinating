@@ -1,18 +1,15 @@
-#include <unistd.h>
-//#include <stdlib.h>
 #include <stdio.h>
-#include <windows.h>
-//#include <process.h>
-#include <Tlhelp32.h>
-//#include <winbase.h>
+#include <unistd.h>
 #include <signal.h>
-//#include <string.h>
-//#include <unistd.h>
 #include <fcntl.h>
+#include <windows.h>
+#include <Tlhelp32.h>
 
 static const char * PROGRAMS[2] = {"notepad.exe","mspaint.exe"};
 static const int NUM_PROGRAMS = sizeof(PROGRAMS)/sizeof(PROGRAMS[0]);
 static const int RESET_TIME[3] = {12, 00, 00}; //hh:mm:ss 24 hour time
+static const int UNLOCK_TIME[3] = {00, 01, 00}; //hh:mm:ss time needed to stop killing
+static int workDone = 0;
 
 void killProcesses() {
     //https://stackoverflow.com/questions/7956519/how-to-kill-processes-by-name-win32-api
@@ -36,11 +33,6 @@ void killProcesses() {
 }
 
 void updateWork() {
-    //int f = open("data", O_RDWR | O_CREAT);
-    //int f = open("data.txt", O_RDWR | O_CREAT, S_IRUSR | S_IRGRP);
-
-    printf("signal received\n");
-
     //compute the last reset time
     time_t now = time(0);
     struct tm nowtm = *localtime(&now);
@@ -63,10 +55,9 @@ void updateWork() {
     	cutoff -= 86400;
     }
 
-    printf("%d\t%d\t%d\n", cutoff, now, cutoff-now);
-
-	FILE * f = fopen("data.txt", "r");
+	FILE * f = fopen("data", "r");
     char bufIn[100];
+    int totalTime = 0;
     while (fgets(bufIn, sizeof(bufIn), f)) {
     	int i = 0;
     	time_t start;
@@ -83,20 +74,26 @@ void updateWork() {
     		}
         	str_p = strtok(NULL, ":\n");
     	}
-
+    	time_t end = start+length;
+    	if (end > cutoff) {
+    		//count this entry
+    		if (start >= cutoff) {
+    			totalTime += length;
+    		}
+    		else {
+    			totalTime += (end-cutoff);
+    		}
+    	}
     }
-    /*char * str_p = strtok(bufIn, "|");
-    while (str_p) {
-    	printf("%s\n", str_p);
-        str_p = strtok(NULL, " dhms");
-    }*/
-    //delete any with end times before the most recent cutoff time
-    //count time remaining
-    //if time > cutoff workDone = 1
+
+    printf("%d\n", totalTime);
+    int unlock = 3600*UNLOCK_TIME[0] + 60*UNLOCK_TIME[1] + UNLOCK_TIME[2];
+    if (totalTime > unlock) {
+    	workDone = 1;
+    }
 }
 
 int main() {
-    int workDone = 0;
     signal(SIGUSR1, updateWork);
     while(1) {
         if (!workDone) {killProcesses();}

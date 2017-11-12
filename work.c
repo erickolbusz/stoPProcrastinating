@@ -1,14 +1,8 @@
-//#include <stdlib.h>
 #include <stdio.h>
-//#include <signal.h>
-//#include <string.h>
-//#include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <windows.h>
-//#include <process.h>
 #include <Tlhelp32.h>
-//#include <winbase.h>
 
 static time_t start = 0;
 
@@ -83,14 +77,13 @@ void write_data(time_t end) {
     time_t diff = end - start;
 
     //int f = open("data", O_WRONLY | O_CREAT);
-    int g = open("data.txt", O_RDWR | O_CREAT, S_IRWXU | S_IRWXG);
+    int g = open("data", O_RDWR | O_CREAT, S_IRWXU | S_IRWXG);
 
     char bufInfo[100];
     sprintf(bufInfo, "%d:%d\n", start, diff);
     int write_len = 0;
     while (bufInfo[++write_len]){}
 
-    printf("%s\n%d", bufInfo, write_len);
     lseek(g,0,SEEK_END);
     write(g, bufInfo, write_len);
     close(g);
