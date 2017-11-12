@@ -11,7 +11,6 @@
 //#include <winbase.h>
 
 static time_t start = 0;
-static const char * RESET_TIME = "12:00:00"; //24 hour time
 
 void timeToStr(char * buf, time_t seconds) {
     //1 day is the largest unit of time
@@ -83,22 +82,24 @@ void write_log(time_t end) {
 void write_data(time_t end) {
     time_t diff = end - start;
 
-    int f = open("asdf.txt", O_RDWR | O_CREAT, S_IRWXU | S_IRWXG);
+    //int f = open("data", O_WRONLY | O_CREAT);
+    int g = open("data.txt", O_RDWR | O_CREAT, S_IRWXU | S_IRWXG);
 
     char bufInfo[100];
-    sprintf(bufInfo, "%d:%d|", start, diff);
+    sprintf(bufInfo, "%d:%d\n", start, diff);
     int write_len = 0;
     while (bufInfo[++write_len]){}
 
-    lseek(f,0,SEEK_END);
-    write(f, bufInfo, write_len);
-    close(f);
+    printf("%s\n%d", bufInfo, write_len);
+    lseek(g,0,SEEK_END);
+    write(g, bufInfo, write_len);
+    close(g);
 }
 
 void write_time() {
     time_t end = time(0);
     write_data(end); //raw data for killer
-    //write_log(end); //human output
+    write_log(end); //human output
 
     //send SIGUSR1 to killer to possibly stop killing
     HANDLE hSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPALL, 0);
